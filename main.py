@@ -1,6 +1,6 @@
 import sys
-sys.stdout.reconfigure(encoding='utf-8')
 from auth import login, register
+sys.stdout.reconfigure(encoding='utf-8')
 
 def show_logo():
     print(r"""
