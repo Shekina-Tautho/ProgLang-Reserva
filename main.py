@@ -1,5 +1,6 @@
 import sys
 sys.stdout.reconfigure(encoding='utf-8')
+from auth import login, register
 
 def show_logo():
     print(r"""
@@ -26,9 +27,11 @@ def main():
         
         if choice == "1":
             print("\nLog In feature coming soon...\n")
+            login()
             break
         elif choice == "2":
             print("\nRegister Feature coming soon...\n")
+            register()
             break
         elif choice == "3":
             print("\nExiting system...\n")
