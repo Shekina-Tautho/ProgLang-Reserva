@@ -1,5 +1,6 @@
 import sys
 from auth import login, register
+from lodgings import view_lodgings, search_lodgings
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -28,18 +29,24 @@ def customer_menu(username):
         choice = input("Enter choice: ").strip()
 
         if choice == "1":
-            print("\nViewing lodgings (feature coming next)...\n")
+            view_lodgings()
+
         elif choice == "2":
-            print("\nSearch lodgings (coming soon)...\n")
+            search_lodgings()
+
         elif choice == "3":
-            print("\nReservation feature coming soon...\n")
+            print("\nReservation feature coming next...\n")
+
         elif choice == "4":
             print("\nView bookings coming soon...\n")
+
         elif choice == "5":
             print("\nCancel booking coming soon...\n")
+
         elif choice == "6":
             print("\nLogging out...\n")
             break
+
         else:
             print("\nInvalid choice. Try again.\n")
 
