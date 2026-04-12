@@ -28,15 +28,13 @@ def view_all_bookings():
 
         print("\n=== ALL BOOKINGS ===")
 
+        # Table Header
+        print(f"{'ID':<5} | {'User':<15} | {'Lodging':<20} | {'Guests':<6} | {'Date':<12} | {'Status':<10}")
+        print("-" * 80)
+
+        # Table Rows
         for booking in bookings:
-            print(f"""
-Booking ID: {booking[0]}
-User: {booking[1]}
-Lodging: {booking[3]}
-Guests: {booking[4]}
-Date: {booking[5]}
-Status: {booking[6]}
------------------------------""")
+            print(f"{booking[0]:<5} | {booking[1]:<15} | {booking[3]:<20} | {booking[4]:<6} | {booking[5]:<12} | {booking[6]:<10}")
 
     except Exception as e:
         print("Error:", e)

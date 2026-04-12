@@ -32,18 +32,21 @@ def load_lodgings():
     return lodgings
 
 
-# ✅ CLEAN CARD DISPLAY
+# CLEAN CARD DISPLAY
 def display_lodgings(lodgings):
     print("\n=== AVAILABLE LODGINGS ===")
 
+    # Column headers
+    print(f"{'ID':<3} | {'Hotel Name':<20} | {'Price':<8} | {'Features'}")
+    print("-" * 65)
+
     for lodge in lodgings:
-        print("=" * 40)
-        print(f"ID: {lodge[0]}")
-        print(f"Name: {lodge[1]}")
-        print(f"Price: ₱{lodge[2]}")
-        print(f"Capacity: {lodge[3]} persons")
-        print(f"Features: {lodge[4].replace('|', ', ')}")
-        print("=" * 40)
+        id_ = lodge[0]
+        name = lodge[1]
+        price = f"₱{lodge[2]}"
+        features = lodge[4].replace('|', ', ')
+
+        print(f"{id_:<3} | {name:<20} | {price:<8} | {features}")
 
 
 def view_lodgings():
