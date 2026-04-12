@@ -2,6 +2,7 @@ import sys
 from auth import login, register
 from lodgings import view_lodgings, search_lodgings
 from reservations import make_reservation, view_my_bookings, cancel_booking
+from admin import admin_menu
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -31,23 +32,17 @@ def customer_menu(username):
 
         if choice == "1":
             view_lodgings()
-
         elif choice == "2":
             search_lodgings()
-
         elif choice == "3":
             make_reservation(username)
-
         elif choice == "4":
             view_my_bookings(username)
-
         elif choice == "5":
             cancel_booking(username)
-
         elif choice == "6":
             print("\nLogging out...\n")
             break
-
         else:
             print("\nInvalid choice. Try again.\n")
 
@@ -65,10 +60,17 @@ def main():
         choice = input("Enter choice: ").strip()
 
         if choice == "1":
-            user = login()
-            if user:
-                print(f"\nWelcome, {user}!\n")
-                customer_menu(user)
+            result = login()
+
+            if result:
+                username, role = result
+
+                print(f"\nWelcome, {username}!\n")
+
+                if role == "admin":
+                    admin_menu()
+                else:
+                    customer_menu(username)
 
         elif choice == "2":
             register()

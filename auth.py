@@ -70,7 +70,6 @@ def login():
         username = input("Enter username: ").strip()
         password = input("Enter password: ").strip()
 
-        # ✅ Validation
         if username == "" or password == "":
             print("Fields cannot be empty.\n")
             continue
@@ -82,7 +81,7 @@ def login():
                 for row in rows:
                     if row[0] == username and row[1] == password:
                         print("Login successful!\n")
-                        return username
+                        return username, row[2]  # return role
 
                 print("Invalid credentials.\n")
 
