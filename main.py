@@ -1,6 +1,7 @@
 import sys
 from auth import login, register
 from lodgings import view_lodgings, search_lodgings
+from reservations import make_reservation, view_my_bookings, cancel_booking
 
 sys.stdout.reconfigure(encoding='utf-8')
 
@@ -35,13 +36,13 @@ def customer_menu(username):
             search_lodgings()
 
         elif choice == "3":
-            print("\nReservation feature coming next...\n")
+            make_reservation(username)
 
         elif choice == "4":
-            print("\nView bookings coming soon...\n")
+            view_my_bookings(username)
 
         elif choice == "5":
-            print("\nCancel booking coming soon...\n")
+            cancel_booking(username)
 
         elif choice == "6":
             print("\nLogging out...\n")
