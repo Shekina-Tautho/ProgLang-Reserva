@@ -11,10 +11,8 @@ def create_lodgings_file():
     with open(filepath, 'w', newline='') as file:
         writer = csv.writer(file)
 
-        # Header
         writer.writerow(["id", "name", "price", "capacity", "features"])
 
-        # Sample data
         writer.writerow([1, "Beach Resort", 2500, 4, "WiFi|Pool|Breakfast"])
         writer.writerow([2, "Mountain Cabin", 1800, 3, "Fireplace|View"])
         writer.writerow([3, "City Hotel", 3200, 2, "WiFi|Gym|Breakfast"])
@@ -26,7 +24,7 @@ def load_lodgings():
 
     with open(filepath, 'r') as file:
         reader = csv.reader(file)
-        next(reader)  # skip header
+        next(reader)
 
         for row in reader:
             lodgings.append(row)
@@ -34,17 +32,18 @@ def load_lodgings():
     return lodgings
 
 
+# ✅ CLEAN CARD DISPLAY
 def display_lodgings(lodgings):
     print("\n=== AVAILABLE LODGINGS ===")
 
     for lodge in lodgings:
-        print(f"""
-ID: {lodge[0]}
-Name: {lodge[1]}
-Price: ₱{lodge[2]}
-Capacity: {lodge[3]} persons
-Features: {lodge[4].replace('|', ', ')}
------------------------------""")
+        print("=" * 40)
+        print(f"ID: {lodge[0]}")
+        print(f"Name: {lodge[1]}")
+        print(f"Price: ₱{lodge[2]}")
+        print(f"Capacity: {lodge[3]} persons")
+        print(f"Features: {lodge[4].replace('|', ', ')}")
+        print("=" * 40)
 
 
 def view_lodgings():
@@ -54,9 +53,17 @@ def view_lodgings():
 
         lodgings = load_lodgings()
 
-        if len(lodgings) == 0:
-            print("No lodgings available.")
-            return
+        # 🔥 SORT OPTION
+        print("\nSort by:")
+        print("1. Default")
+        print("2. Price (Low to High)")
+        print("3. Price (High to Low)")
+        choice = input("Enter choice: ").strip()
+
+        if choice == "2":
+            lodgings = sorted(lodgings, key=lambda x: int(x[2]))
+        elif choice == "3":
+            lodgings = sorted(lodgings, key=lambda x: int(x[2]), reverse=True)
 
         display_lodgings(lodgings)
 
@@ -71,20 +78,37 @@ def search_lodgings():
 
         lodgings = load_lodgings()
 
-        keyword = input("\nEnter search keyword: ").lower().strip()
+        print("\n=== SEARCH LODGINGS ===")
 
-        if keyword == "":
-            print("Search cannot be empty.")
-            return
+        keyword = input("Keyword (name/features): ").lower().strip()
+        min_price = input("Min price (optional): ").strip()
+        max_price = input("Max price (optional): ").strip()
+        capacity = input("Capacity (optional): ").strip()
 
         results = []
 
         for lodge in lodgings:
-            if keyword in lodge[1].lower() or keyword in lodge[4].lower():
-                results.append(lodge)
+            price = int(lodge[2])
+            cap = int(lodge[3])
+
+            # 🔍 keyword filter
+            if keyword and keyword not in lodge[1].lower() and keyword not in lodge[4].lower():
+                continue
+
+            # 💰 price filter
+            if min_price and price < int(min_price):
+                continue
+            if max_price and price > int(max_price):
+                continue
+
+            # 👥 capacity filter
+            if capacity and cap < int(capacity):
+                continue
+
+            results.append(lodge)
 
         if results:
-            print("\nSearch Results:")
+            print("\nFiltered Results:")
             display_lodgings(results)
         else:
             print("\nNo matching lodgings found.")
