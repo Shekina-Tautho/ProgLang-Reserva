@@ -2,4 +2,5 @@ booking_id,username,lodging_id,lodging_name,guests,date,payment_ref,status
 1,shek,3,City Hotel,2,sdfsdfs,Rejected
 2,shek,3,City Hotel,2,3,Pending
 3,shek,3,City Hotel,2,2026-04-12,Approved,Pending
-4,shek,1,Beach Resort,2,2026-12-18,Approved,Pending
+5,hold,1,Beach Resort - Standard,2,2026-12-18,Approved,Pending
+6,shek,1,Beach Resort - Standard,2,2026-12-12,Rejected,Pending

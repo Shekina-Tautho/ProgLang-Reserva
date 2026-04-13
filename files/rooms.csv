@@ -1,0 +1,7 @@
+id,lodging_id,room_type,price,capacity
+1,1,Standard,2500,2
+2,1,Family,4000,4
+3,2,Cabin Room,1800,3
+4,3,Standard,3200,2
+5,3,Deluxe,4500,4
+6,4,Single,900,1

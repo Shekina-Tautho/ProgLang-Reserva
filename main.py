@@ -20,68 +20,49 @@ def show_logo():
 
 def customer_menu(username):
     while True:
-        print("\n=== CUSTOMER MENU ===")
-        print("1. View Lodgings")
-        print("2. Search Lodgings")
-        print("3. Make Reservation")
-        print("4. View My Bookings")
-        print("5. Cancel Booking")
-        print("6. Logout")
+        print('\n=== CUSTOMER MENU ===')
+        print('1. Browse Hotels')
+        print('2. Search Lodgings')
+        print('3. View My Bookings')
+        print('4. Cancel Booking')
+        print('5. Logout')
+        choice = input('Enter choice: ').strip()
 
-        choice = input("Enter choice: ").strip()
-
-        if choice == "1":
-            view_lodgings()
-        elif choice == "2":
-            search_lodgings()
-        elif choice == "3":
+        if choice == '1':
             make_reservation(username)
-        elif choice == "4":
+        elif choice == '2':
+            search_lodgings()
+        elif choice == '3':
             view_my_bookings(username)
-        elif choice == "5":
+        elif choice == '4':
             cancel_booking(username)
-        elif choice == "6":
-            print("\nLogging out...\n")
+        elif choice == '5':
             break
         else:
-            print("\nInvalid choice. Try again.\n")
+            print('Invalid choice.')
 
 
 def main():
     show_logo()
-    print("Welcome to RESERVA Booking System\n")
-
     while True:
-        print("== MAIN MENU ==")
-        print("1. Log In")
-        print("2. Register")
-        print("3. Exit\n")
+        print('\n1. Log In')
+        print('2. Register')
+        print('3. Exit')
+        choice = input('Enter choice: ').strip()
 
-        choice = input("Enter choice: ").strip()
-
-        if choice == "1":
+        if choice == '1':
             result = login()
-
             if result:
                 username, role = result
-
-                print(f"\nWelcome, {username}!\n")
-
-                if role == "admin":
+                if role == 'admin':
                     admin_menu()
                 else:
                     customer_menu(username)
-
-        elif choice == "2":
+        elif choice == '2':
             register()
-
-        elif choice == "3":
-            print("\nExiting system...\n")
+        elif choice == '3':
             break
 
-        else:
-            print("\nInvalid input. Please try again.\n")
 
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
