@@ -11,7 +11,17 @@ def create_bookings_file():
     Path('files').mkdir(exist_ok=True)
     with open(filepath, 'w', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow(['booking_id', 'username', 'lodging_id', 'lodging_name', 'guests', 'date', 'payment_ref', 'status'])
+        writer.writerow([
+            'booking_id',
+            'username',
+            'lodging_id',
+            'lodging_name',
+            'guests',
+            'check_in',
+            'check_out',
+            'payment_ref',
+            'status'
+        ])
 
 
 def load_bookings():
@@ -26,6 +36,30 @@ def load_bookings():
 
 def generate_booking_id(bookings):
     return 1 if not bookings else int(bookings[-1][0]) + 1
+
+
+
+def is_room_available(lodging_name, check_in, check_out):
+    bookings = load_bookings()
+
+    new_in = datetime.strptime(check_in, '%Y-%m-%d')
+    new_out = datetime.strptime(check_out, '%Y-%m-%d')
+
+    for booking in bookings:
+        existing_lodging = booking[3]
+        existing_status = booking[8]
+
+        if existing_lodging != lodging_name or existing_status != 'Approved':
+            continue
+
+        existing_in = datetime.strptime(booking[5], '%Y-%m-%d')
+        existing_out = datetime.strptime(booking[6], '%Y-%m-%d')
+
+        # 🔥 OVERLAP CHECK
+        if new_in < existing_out and new_out > existing_in:
+            return False
+
+    return True
 
 
 def make_reservation(username):
@@ -47,14 +81,25 @@ def make_reservation(username):
         print('Invalid guests count.')
 
     while True:
-        date = input('Enter date (YYYY-MM-DD): ').strip()
+        check_in = input('Enter check-in date (YYYY-MM-DD): ').strip()
+        check_out = input('Enter check-out date (YYYY-MM-DD): ').strip()
+
         try:
-            d = datetime.strptime(date, '%Y-%m-%d')
-            if d.date() >= datetime.today().date():
+            in_date = datetime.strptime(check_in, '%Y-%m-%d')
+            out_date = datetime.strptime(check_out, '%Y-%m-%d')
+
+            if in_date.date() >= datetime.today().date() and out_date > in_date:
                 break
         except:
             pass
-        print('Invalid date.')
+
+        print('Invalid dates. Make sure check-out is after check-in.')
+
+    lodging_name = hotel[1] + ' - ' + room[2]
+
+    if not is_room_available(lodging_name, check_in, check_out):
+        print('❌ Room is already booked for those dates.')
+        return
 
     payment_ref = input('Enter payment reference: ').strip()
 
@@ -69,7 +114,8 @@ def make_reservation(username):
             hotel[0],
             hotel[1] + ' - ' + room[2],
             guests,
-            date,
+            check_in,
+            check_out,
             payment_ref,
             'Pending'
         ])
@@ -103,8 +149,19 @@ def cancel_booking(username):
     if found:
         with open(filepath, 'w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(['booking_id', 'username', 'lodging_id', 'lodging_name', 'guests', 'date', 'payment_ref', 'status'])
+            writer.writerow([
+                'booking_id',
+                'username',
+                'lodging_id',
+                'lodging_name',
+                'guests',
+                'check_in',
+                'check_out',
+                'payment_ref',
+                'status'
+            ])
             writer.writerows(updated)
         print('Booking cancelled successfully.')
     else:
         print('Booking not found or not yours.')
+        

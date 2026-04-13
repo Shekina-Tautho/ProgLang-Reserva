@@ -29,12 +29,12 @@ def view_all_bookings():
         print("\n=== ALL BOOKINGS ===")
 
         # Table Header
-        print(f"{'ID':<5} | {'User':<15} | {'Lodging':<20} | {'Guests':<6} | {'Date':<12} | {'Payment Ref':<15} | {'Status':<10}")
-        print("-" * 100)
+        print(f"{'ID':<5} | {'User':<15} | {'Lodging':<20} | {'Guests':<6} | {'Check-in':<12} | {'Check-out':<12} | {'Payment Ref':<15} | {'Status':<10}")
+        print("-" * 120)
 
         # Table Rows
         for booking in bookings:
-            print(f"{booking[0]:<5} | {booking[1]:<15} | {booking[3]:<20} | {booking[4]:<6} | {booking[5]:<12} | {booking[6]:<15} | {booking[7]:<10}")
+            print(f"{booking[0]:<5} | {booking[1]:<15} | {booking[3]:<20} | {booking[4]:<6} | {booking[5]:<12} | {booking[6]:<12} | {booking[7]:<15} | {booking[8]:<10}")
 
     except Exception as e:
         print("Error:", e)
@@ -67,7 +67,7 @@ def update_booking_status():
 
         for booking in bookings:
             if booking[0] == booking_id:
-                booking[7] = new_status
+                booking[8] = new_status
                 found = True
             updated.append(booking)
 
