@@ -58,14 +58,23 @@ def search_lodgings():
 def browse_hotels():
     if not path.exists():
         create_lodgings_file()
+
     lodgings = load_lodgings()
-    display_lodgings(lodgings)
-    hotel_id = input('Select Hotel ID: ').strip()
-    for lodge in lodgings:
-        if lodge[0] == hotel_id:
-            return lodge
-    print('Invalid Hotel ID.')
-    return None
+
+    while True:
+        display_lodgings(lodgings)
+        print("0. Back")
+
+        hotel_id = input("Select Hotel ID (or 'b' to go back): ").strip()
+
+        if hotel_id == "0" or hotel_id.lower() == 'b':
+            return None
+
+        for lodge in lodgings:
+            if lodge[0] == hotel_id:
+                return lodge
+
+        print('Invalid Hotel ID.')
 
 
 def show_rooms(hotel_id):
