@@ -238,14 +238,31 @@ def cancel_booking(username):
 
     updated = []
     found = False
+    cancelled = False
 
     for booking in bookings:
         if booking[0] == booking_id and booking[1] == username:
             found = True
+
+            # ❌ Block cancellation if already processed
+            if booking[8] in ["Approved", "Rejected"]:
+                print("❌ Cannot cancel processed booking.")
+                updated.append(booking)
+                continue
+
+            # ✅ Allow cancellation (skip adding to updated list)
+            cancelled = True
             continue
+
         updated.append(booking)
 
-    if found:
+    # ❌ Booking not found
+    if not found:
+        print('❌ Booking not found or not yours.')
+        return
+
+    # ✅ Only write + success if actually cancelled
+    if cancelled:
         with open(filepath, 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([
@@ -261,6 +278,6 @@ def cancel_booking(username):
             ])
             writer.writerows(updated)
 
-        print('Booking cancelled successfully.')
+        print('✅ Booking cancelled successfully.')
     else:
-        print('Booking not found or not yours.')
+        print('❌ Cancellation failed.')
