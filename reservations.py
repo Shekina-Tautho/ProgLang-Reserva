@@ -35,6 +35,7 @@ def is_room_available(lodging_name, check_in, check_out):
     new_out = datetime.strptime(check_out, '%Y-%m-%d')
 
     for booking in bookings:
+        # ONLY approved bookings block rooms
         if booking[3] != lodging_name or booking[8] != 'Approved':
             continue
 
@@ -130,6 +131,74 @@ def make_reservation(username, hotel=None, room=None):
         ])
 
     print("\nReservation submitted successfully!")
+
+
+def pay_for_booking(username):
+    if not path.exists():
+        print("No bookings found.")
+        return
+
+    bookings = load_bookings()
+
+    booking_id = input("Enter Booking ID to pay (or 'b' to go back): ").strip()
+
+    if booking_id.lower() == 'b':
+        return
+
+    updated = []
+    found = False
+
+    for booking in bookings:
+        if booking[0] == booking_id and booking[1] == username:
+            found = True
+
+            if booking[8] == "Paid":
+                print("❌ Already paid.")
+                updated.append(booking)
+                continue
+
+            if booking[8] in ["Approved", "Rejected"]:
+                print("❌ Cannot pay. Booking already processed by admin.")
+                updated.append(booking)
+                continue
+
+            print("\n=== BOOKING DETAILS ===")
+            print(f"Lodging   : {booking[3]}")
+            print(f"Check-in  : {booking[5]}")
+            print(f"Check-out : {booking[6]}")
+            print(f"Status    : {booking[8]}")
+
+            payment_ref = input("\nEnter payment reference: ").strip()
+
+            while payment_ref == "":
+                print("❌ Payment reference cannot be empty.")
+                payment_ref = input("Enter payment reference: ").strip()
+
+            booking[7] = payment_ref
+            booking[8] = "Paid"
+
+            print("✅ Payment successful!")
+
+        updated.append(booking)
+
+    if not found:
+        print("❌ Booking ID not found or not yours.")
+        return
+
+    with open(filepath, 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([
+            "booking_id",
+            "username",
+            "lodging_id",
+            "lodging_name",
+            "guests",
+            "check_in",
+            "check_out",
+            "payment_ref",
+            "status"
+        ])
+        writer.writerows(updated)
     
 
 def view_my_bookings(username):

@@ -6,11 +6,13 @@ path = Path(filepath)
 
 
 def load_bookings():
-    bookings = []
+    if not path.exists():
+        return []
 
+    bookings = []
     with open(filepath, 'r') as file:
         reader = csv.reader(file)
-        next(reader)
+        next(reader, None)
 
         for row in reader:
             bookings.append(row)
@@ -19,82 +21,74 @@ def load_bookings():
 
 
 def view_all_bookings():
-    try:
-        if not path.exists():
-            print("No bookings found.")
-            return
+    if not path.exists():
+        print("No bookings found.")
+        return
 
-        bookings = load_bookings()
+    bookings = load_bookings()
 
-        print("\n=== ALL BOOKINGS ===")
+    print("\n=== ALL BOOKINGS ===\n")
 
-        # Table Header
-        print(f"{'ID':<5} | {'User':<15} | {'Lodging':<20} | {'Guests':<6} | {'Check-in':<12} | {'Check-out':<12} | {'Payment Ref':<15} | {'Status':<10}")
-        print("-" * 120)
+    print(f"{'ID':<5} | {'User':<12} | {'Lodging':<25} | {'Status':<10} | {'Payment':<15}")
+    print("-" * 80)
 
-        # Table Rows
-        for booking in bookings:
-            print(f"{booking[0]:<5} | {booking[1]:<15} | {booking[3]:<20} | {booking[4]:<6} | {booking[5]:<12} | {booking[6]:<12} | {booking[7]:<15} | {booking[8]:<10}")
-
-    except Exception as e:
-        print("Error:", e)
+    for b in bookings:
+        print(f"{b[0]:<5} | {b[1]:<12} | {b[3]:<25} | {b[8]:<10} | {b[7]:<15}")
 
 
 def update_booking_status():
-    try:
-        if not path.exists():
-            print("No bookings found.")
+    if not path.exists():
+        print("No bookings found.")
+        return
+
+    bookings = load_bookings()
+
+    while True:
+        booking_id = input("Enter Booking ID (or 'b' to go back): ").strip()
+
+        if booking_id.lower() == 'b':
             return
 
-        bookings = load_bookings()
+        # find booking
+        target = None
+        for b in bookings:
+            if b[0] == booking_id:
+                target = b
+                break
 
-        while True:
-            booking_id = input("Enter Booking ID (or 'b' to go back): ").strip()
+        if not target:
+            print("❌ Invalid Booking ID. Try again.")
+            continue
 
-            if booking_id.lower() == 'b':
-                return
-
-            # 🔥 CHECK IF ID EXISTS
-            valid_booking = None
-            for booking in bookings:
-                if booking[0] == booking_id:
-                    valid_booking = booking
-                    break
-
-            if not valid_booking:
-                print("❌ Invalid Booking ID. Try again.")
-                continue
-
-            # ✅ ONLY CONTINUE IF VALID
-            print("1. Approve")
-            print("2. Reject")
-
-            choice = input("Enter choice: ").strip()
-
-            if choice == "1":
-                new_status = "Approved"
-            elif choice == "2":
-                new_status = "Rejected"
-            else:
-                print("❌ Invalid choice.")
-                continue
-
-            break  # exit loop once valid
-
-        updated = []
-        found = False
-
-        for booking in bookings:
-            if booking[0] == booking_id:
-                booking[8] = new_status
-                found = True
-            updated.append(booking)
-
-        if not found:
-            print("Booking ID not found.")
+        # ONLY PAID CAN BE APPROVED/REJECTED
+        if target[8] != "Paid":
+            print("❌ Only PAID bookings can be approved or rejected.")
             return
 
-        # Rewrite file
+        print("\nBooking found:")
+        print(f"Lodging : {target[3]}")
+        print(f"Status   : {target[8]}")
+
+        print("\n1. Approve")
+        print("2. Reject")
+
+        choice = input("Enter choice: ").strip()
+
+        if choice == "1":
+            new_status = "Approved"
+        elif choice == "2":
+            new_status = "Rejected"
+        else:
+            print("❌ Invalid choice.")
+            continue
+
+        # update booking
+        for b in bookings:
+            if b[0] == booking_id:
+                b[8] = new_status
+                break
+
+        # write back
         with open(filepath, 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([
@@ -103,16 +97,15 @@ def update_booking_status():
                 "lodging_id",
                 "lodging_name",
                 "guests",
-                "date",
+                "check_in",
+                "check_out",
                 "payment_ref",
                 "status"
             ])
-            writer.writerows(updated)
+            writer.writerows(bookings)
 
-        print(f"Booking {new_status} successfully.")
-
-    except Exception as e:
-        print("Error:", e)
+        print(f"✅ Booking {new_status} successfully.")
+        return
 
 
 def admin_menu():
