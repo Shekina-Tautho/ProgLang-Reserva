@@ -5,6 +5,9 @@ filepath = 'files/bookings.csv'
 path = Path(filepath)
 
 
+# =========================
+# LOAD BOOKINGS
+# =========================
 def load_bookings():
     if not path.exists():
         return []
@@ -20,6 +23,20 @@ def load_bookings():
     return bookings
 
 
+# =========================
+# STATUS ICONS
+# =========================
+status_icons = {
+    "Pending Payment": "🟡 Pending",
+    "Paid": "💳 Paid",
+    "Approved": "🟢 Approved",
+    "Rejected": "🔴 Rejected"
+}
+
+
+# =========================
+# VIEW ALL BOOKINGS
+# =========================
 def view_all_bookings():
     if not path.exists():
         print("No bookings found.")
@@ -27,15 +44,51 @@ def view_all_bookings():
 
     bookings = load_bookings()
 
-    print("\n=== ALL BOOKINGS ===\n")
+    print("\n" + "=" * 110)
+    print(" " * 40 + "📊 ADMIN BOOKINGS DASHBOARD")
+    print("=" * 110)
 
-    print(f"{'ID':<5} | {'User':<12} | {'Lodging':<25} | {'Status':<10} | {'Payment':<15}")
-    print("-" * 80)
+    print(f"{'ID':<5} | {'USER':<12} | {'LODGING':<25} | {'STATUS':<18} | {'PAYMENT':<15}")
+    print("-" * 110)
 
     for b in bookings:
-        print(f"{b[0]:<5} | {b[1]:<12} | {b[3]:<25} | {b[8]:<10} | {b[7]:<15}")
+        status = status_icons.get(b[8], b[8])
+
+        print(f"{b[0]:<5} | {b[1]:<12} | {b[3]:<25} | {status:<18} | {b[7]:<15}")
+
+    print("=" * 110)
 
 
+# =========================
+# FILTER VIEW (ALL STATUSES)
+# =========================
+def view_bookings_by_status(status_filter):
+    bookings = load_bookings()
+
+    print("\n" + "=" * 110)
+    print(f" 📊 BOOKINGS - {status_filter.upper()}")
+    print("=" * 110)
+
+    print(f"{'ID':<5} | {'USER':<12} | {'LODGING':<25} | {'STATUS':<18} | {'PAYMENT':<15}")
+    print("-" * 110)
+
+    found = False
+
+    for b in bookings:
+        if b[8] == status_filter:
+            found = True
+            status = status_icons.get(b[8], b[8])
+            print(f"{b[0]:<5} | {b[1]:<12} | {b[3]:<25} | {status:<18} | {b[7]:<15}")
+
+    if not found:
+        print("No records found.")
+
+    print("=" * 110)
+
+
+# =========================
+# UPDATE BOOKING STATUS
+# =========================
 def update_booking_status():
     if not path.exists():
         print("No bookings found.")
@@ -49,7 +102,6 @@ def update_booking_status():
         if booking_id.lower() == 'b':
             return
 
-        # find booking
         target = None
         for b in bookings:
             if b[0] == booking_id:
@@ -59,19 +111,14 @@ def update_booking_status():
         if not target:
             print("❌ Invalid Booking ID. Try again.")
             continue
-        
-        if target[8] != "Paid":
-            print("❌ Only PAID bookings can be approved or rejected.")
-            return
 
-        # ONLY PAID CAN BE APPROVED/REJECTED
         if target[8] != "Paid":
             print("❌ Only PAID bookings can be approved or rejected.")
             return
 
         print("\nBooking found:")
         print(f"Lodging : {target[3]}")
-        print(f"Status   : {target[8]}")
+        print(f"Status  : {target[8]}")
 
         print("\n1. Approve")
         print("2. Reject")
@@ -86,13 +133,11 @@ def update_booking_status():
             print("❌ Invalid choice.")
             continue
 
-        # update booking
         for b in bookings:
             if b[0] == booking_id:
                 b[8] = new_status
                 break
 
-        # write back
         with open(filepath, 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([
@@ -112,12 +157,22 @@ def update_booking_status():
         return
 
 
+# =========================
+# ADMIN MENU (FINAL UPGRADE)
+# =========================
 def admin_menu():
     while True:
-        print("\n=== ADMIN MENU ===")
+        print("\n" + "=" * 55)
+        print("         🛠 ADMIN DASHBOARD")
+        print("=" * 55)
         print("1. View All Bookings")
-        print("2. Approve / Reject Booking")
-        print("3. Logout")
+        print("2. View Pending Payments")
+        print("3. View Paid Bookings")
+        print("4. View Approved Bookings")   # ✅ ADDED
+        print("5. View Rejected Bookings")   # ✅ ADDED
+        print("6. Approve / Reject Booking")
+        print("7. Logout")
+        print("=" * 55)
 
         choice = input("Enter choice: ").strip()
 
@@ -125,10 +180,22 @@ def admin_menu():
             view_all_bookings()
 
         elif choice == "2":
-            update_booking_status()
+            view_bookings_by_status("Pending Payment")
 
         elif choice == "3":
-            print("\nLogging out...\n")
+            view_bookings_by_status("Paid")
+
+        elif choice == "4":
+            view_bookings_by_status("Approved")   # ✅ NEW
+
+        elif choice == "5":
+            view_bookings_by_status("Rejected")   # ✅ NEW
+
+        elif choice == "6":
+            update_booking_status()
+
+        elif choice == "7":
+            print("Logging out...")
             break
 
         else:
