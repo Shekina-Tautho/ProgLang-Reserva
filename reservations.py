@@ -125,10 +125,31 @@ def make_reservation(username):
 
 def view_my_bookings(username):
     if not path.exists():
+        print("No bookings found.")
         return
-    for booking in load_bookings():
+
+    bookings = load_bookings()
+    found = False
+
+    print("\n=== MY BOOKINGS ===\n")
+
+    for booking in bookings:
         if booking[1] == username:
-            print(booking)
+            found = True
+
+            print("=" * 50)
+            print(f" Booking ID : {booking[0]}")
+            print(f" Lodging   : {booking[3]}")
+            print(f" Guests    : {booking[4]}")
+            print(f" Check-in  : {booking[5]}")
+            print(f" Check-out : {booking[6]}")
+            print(f" Payment   : {booking[7]}")
+            print(f" Status    : {booking[8]}")
+            print("=" * 50)
+            print()
+
+    if not found:
+        print("You have no bookings.")
 
 
 def cancel_booking(username):
