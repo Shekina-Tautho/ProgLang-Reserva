@@ -205,6 +205,13 @@ def view_my_bookings(username):
     found = False
 
     print("\n=== MY BOOKINGS ===\n")
+    
+    status_icons = {
+        "Pending Payment": "🟡 Pending Payment",
+        "Paid": "💳 Paid",
+        "Approved": "✅ Approved",
+        "Rejected": "❌ Rejected"
+    }
 
     for booking in bookings:
         if booking[1] == username:
@@ -217,7 +224,7 @@ def view_my_bookings(username):
             print(f" Check-in  : {booking[5]}")
             print(f" Check-out : {booking[6]}")
             print(f" Payment   : {booking[7]}")
-            print(f" Status    : {booking[8]}")
+            print(f" Status    : {status_icons.get(booking[8], booking[8])}")
             print("=" * 50)
             print()
 
