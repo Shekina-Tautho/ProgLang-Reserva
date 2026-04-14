@@ -1,2 +1,1 @@
-booking_id,username,lodging_id,lodging_name,guests,date,payment_ref,status
-1,hold,1,Beach Resort - Standard,2,2026-12-12,2026-12-22,2334343,Approved
+booking_id,username,lodging_id,lodging_name,guests,check_in,check_out,payment_ref,status

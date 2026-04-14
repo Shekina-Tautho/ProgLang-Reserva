@@ -47,8 +47,12 @@ def search_lodgings():
     if not path.exists():
         create_lodgings_file()
     lodgings = load_lodgings()
-    keyword = input('Keyword: ').lower().strip()
+    keyword = input("Keyword (or 'b' to go back): ").lower().strip()
     results = []
+    
+    if keyword == 'b':
+        return None
+    
     for lodge in lodgings:
         if keyword in lodge[1].lower() or keyword in lodge[4].lower():
             results.append(lodge)
@@ -63,7 +67,6 @@ def browse_hotels():
 
     while True:
         display_lodgings(lodgings)
-        print("0. Back")
 
         hotel_id = input("Select Hotel ID (or 'b' to go back): ").strip()
 
@@ -85,12 +88,15 @@ def show_rooms(hotel_id):
         if room[1] == hotel_id:
             choices.append(room)
             print(f"{room[0]}. {room[2]} | ₱{room[3]} | Capacity: {room[4]}")
-    room_id = input('Choose Room ID: ').strip()
+    room_id = input("Select Hotel ID (or 'b' to go back): ").strip()
+    
+    if room_id.lower() == 'b':
+        return None
+    
     for room in choices:
         if room[0] == room_id:
-            return room
+            return room 
     print('Invalid Room ID.')
-    return None
 
 def view_lodgings():
     if not path.exists():

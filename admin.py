@@ -48,19 +48,22 @@ def update_booking_status():
 
         bookings = load_bookings()
 
-        booking_id = input("Enter Booking ID: ").strip()
+        booking_id = input("Enter Booking ID (or 'b' to go back): ").strip()
 
-        print("1. Approve")
-        print("2. Reject")
-        choice = input("Enter choice: ").strip()
-
-        if choice == "1":
-            new_status = "Approved"
-        elif choice == "2":
-            new_status = "Rejected"
+        if booking_id == 'b':
+            return None 
         else:
-            print("Invalid choice.")
-            return
+            print("1. Approve")
+            print("2. Reject")
+            choice = input("Enter choice: ").strip()
+
+            if choice == "1":
+                new_status = "Approved"
+            elif choice == "2":
+                new_status = "Rejected"
+            else:
+                print("Invalid choice.")
+                return
 
         updated = []
         found = False

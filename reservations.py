@@ -157,10 +157,13 @@ def cancel_booking(username):
         return
 
     bookings = load_bookings()
-    booking_id = input('Enter Booking ID to cancel: ').strip()
+    booking_id = input("Enter Booking ID to cancel (or 'b' to go back): ").strip()
     updated = []
     found = False
 
+    if booking_id.lower() == 'b':
+        return None
+    
     for booking in bookings:
         if booking[0] == booking_id and booking[1] == username:
             found = True
