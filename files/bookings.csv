@@ -1,3 +1,4 @@
 booking_id,username,lodging_id,lodging_name,guests,date,payment_ref,status
 1,wait,1,Beach Resort - Standard,0,2026-12-17,2026-12-22,123456789,Pending
 2,wait,1,Beach Resort - Standard,2,2026-12-12,2026-12-22,123456789,Rejected
+3,hold,1,Beach Resort - Standard,2,2026-08-08,2026-08-09,12,Rejected

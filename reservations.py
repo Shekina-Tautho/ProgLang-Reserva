@@ -88,7 +88,13 @@ def make_reservation(username, hotel=None, room=None):
         print('❌ Room is already booked.')
         return
 
-    payment_ref = input('Enter payment reference: ').strip()
+    while True:
+        payment_ref = input('Enter payment reference: ').strip()
+
+        if payment_ref == "":
+            print("❌ Payment reference cannot be empty.")
+        else:
+            break
 
     bookings = load_bookings()
     booking_id = generate_booking_id(bookings)
