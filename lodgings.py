@@ -111,10 +111,9 @@ def select_room_only(hotel_id):
             print("No rooms available.")
             return None
 
-        print("0. Back")
-        choice = input("Select Room ID: ").strip()
+        choice = input("Select Room ID (or 'b' to go back): ").strip()
 
-        if choice == "0":
+        if choice == "b":
             return None
 
         for room in available_rooms:
@@ -132,11 +131,10 @@ def view_lodgings():
 
     while True:
         display_lodgings(lodgings)
-        print("0. Back")
 
-        hotel_id = input("Select Hotel ID: ").strip()
+        hotel_id = input("Select Hotel ID (or 'b' to go back): ").strip()
 
-        if hotel_id == "0":
+        if hotel_id == "b":
             return None
 
         selected = None
