@@ -152,13 +152,8 @@ def pay_for_booking(username):
         if booking[0] == booking_id and booking[1] == username:
             found = True
 
-            if booking[8] == "Paid":
-                print("❌ Already paid.")
-                updated.append(booking)
-                continue
-
-            if booking[8] in ["Approved", "Rejected"]:
-                print("❌ Cannot pay. Booking already processed by admin.")
+            if booking[8] != "Pending Payment":
+                print("❌ This booking is not awaiting payment.")
                 updated.append(booking)
                 continue
 
