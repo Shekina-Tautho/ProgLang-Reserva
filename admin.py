@@ -59,6 +59,10 @@ def update_booking_status():
         if not target:
             print("❌ Invalid Booking ID. Try again.")
             continue
+        
+        if target[8] != "Paid":
+            print("❌ Only PAID bookings can be approved or rejected.")
+            return
 
         # ONLY PAID CAN BE APPROVED/REJECTED
         if target[8] != "Paid":
