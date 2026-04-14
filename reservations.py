@@ -51,6 +51,7 @@ def make_reservation(username, hotel=None, room=None):
     if not path.exists():
         create_bookings_file()
 
+    # STEP 1: SELECT HOTEL & ROOM (if not passed)
     if not hotel:
         hotel = browse_hotels()
         if not hotel:
@@ -61,12 +62,15 @@ def make_reservation(username, hotel=None, room=None):
         if not room:
             return
 
+    # STEP 2: INPUT GUESTS
     while True:
         guests = input('Number of guests: ').strip()
         if guests.isdigit() and int(guests) <= int(room[4]):
+            guests = int(guests)
             break
         print('Invalid guests count.')
 
+    # STEP 3: INPUT DATES
     while True:
         check_in = input('Enter check-in date (YYYY-MM-DD): ').strip()
         check_out = input('Enter check-out date (YYYY-MM-DD): ').strip()
@@ -82,31 +86,50 @@ def make_reservation(username, hotel=None, room=None):
 
         print('Invalid dates.')
 
+    # STEP 4: COMPUTE PRICE
     lodging_name = hotel[1] + ' - ' + room[2]
+    price_per_night = int(room[3])
+    nights = (out_date - in_date).days
+    total = price_per_night * nights
 
+    print("\n=== BOOKING SUMMARY ===")
+    print(f"Lodging     : {lodging_name}")
+    print(f"Price/night : ₱{price_per_night}")
+    print(f"Nights      : {nights}")
+    print(f"Total       : ₱{total}")
+
+    # STEP 5: CONFIRMATION
+    confirm = input("\nConfirm reservation? (y/n): ").strip().lower()
+
+    if confirm != 'y':
+        print("Reservation cancelled.")
+        return
+
+    # STEP 6: CHECK AVAILABILITY
     if not is_room_available(lodging_name, check_in, check_out):
         print('❌ Room is already booked.')
         return
 
-    while True:
-        payment_ref = input('Enter payment reference: ').strip()
-
-        if payment_ref == "":
-            print("❌ Payment reference cannot be empty.")
-        else:
-            break
-
+    # STEP 7: GENERATE ID
     bookings = load_bookings()
     booking_id = generate_booking_id(bookings)
 
+    # STEP 8: WRITE TO FILE
     with open(filepath, 'a', newline='') as file:
         writer = csv.writer(file)
         writer.writerow([
-            booking_id, username, hotel[0], lodging_name,
-            guests, check_in, check_out, payment_ref, 'Pending'
+            booking_id,
+            username,
+            hotel[0],
+            lodging_name,
+            guests,
+            check_in,
+            check_out,
+            "",  # payment_ref later
+            "Pending Payment"
         ])
 
-    print('Reservation submitted successfully!')
+    print("\nReservation submitted successfully!")
     
 
 def view_my_bookings(username):
