@@ -12,31 +12,20 @@ def create_bookings_file():
     with open(filepath, 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow([
-            'booking_id',
-            'username',
-            'lodging_id',
-            'lodging_name',
-            'guests',
-            'check_in',
-            'check_out',
-            'payment_ref',
-            'status'
+            'booking_id', 'username', 'lodging_id', 'lodging_name',
+            'guests', 'check_in', 'check_out', 'payment_ref', 'status'
         ])
 
 
 def load_bookings():
-    data = []
     with open(filepath, 'r') as file:
         reader = csv.reader(file)
         next(reader)
-        for row in reader:
-            data.append(row)
-    return data
+        return [row for row in reader]
 
 
 def generate_booking_id(bookings):
     return 1 if not bookings else int(bookings[-1][0]) + 1
-
 
 
 def is_room_available(lodging_name, check_in, check_out):
@@ -46,33 +35,31 @@ def is_room_available(lodging_name, check_in, check_out):
     new_out = datetime.strptime(check_out, '%Y-%m-%d')
 
     for booking in bookings:
-        existing_lodging = booking[3]
-        existing_status = booking[8]
-
-        if existing_lodging != lodging_name or existing_status != 'Approved':
+        if booking[3] != lodging_name or booking[8] != 'Approved':
             continue
 
         existing_in = datetime.strptime(booking[5], '%Y-%m-%d')
         existing_out = datetime.strptime(booking[6], '%Y-%m-%d')
 
-        # 🔥 OVERLAP CHECK
         if new_in < existing_out and new_out > existing_in:
             return False
 
     return True
 
 
-def make_reservation(username):
+def make_reservation(username, hotel=None, room=None):
     if not path.exists():
         create_bookings_file()
 
-    hotel = browse_hotels()
     if not hotel:
-        return
+        hotel = browse_hotels()
+        if not hotel:
+            return
 
-    room = show_rooms(hotel[0])
     if not room:
-        return
+        room = show_rooms(hotel[0])
+        if not room:
+            return
 
     while True:
         guests = input('Number of guests: ').strip()
@@ -93,12 +80,12 @@ def make_reservation(username):
         except:
             pass
 
-        print('Invalid dates. Make sure check-out is after check-in.')
+        print('Invalid dates.')
 
     lodging_name = hotel[1] + ' - ' + room[2]
 
     if not is_room_available(lodging_name, check_in, check_out):
-        print('❌ Room is already booked for those dates.')
+        print('❌ Room is already booked.')
         return
 
     payment_ref = input('Enter payment reference: ').strip()
@@ -109,19 +96,12 @@ def make_reservation(username):
     with open(filepath, 'a', newline='') as file:
         writer = csv.writer(file)
         writer.writerow([
-            booking_id,
-            username,
-            hotel[0],
-            hotel[1] + ' - ' + room[2],
-            guests,
-            check_in,
-            check_out,
-            payment_ref,
-            'Pending'
+            booking_id, username, hotel[0], lodging_name,
+            guests, check_in, check_out, payment_ref, 'Pending'
         ])
 
     print('Reservation submitted successfully!')
-
+    
 
 def view_my_bookings(username):
     if not path.exists():
@@ -150,20 +130,22 @@ def view_my_bookings(username):
 
     if not found:
         print("You have no bookings.")
-
-
+        
+        
 def cancel_booking(username):
     if not path.exists():
         return
 
     bookings = load_bookings()
+
     booking_id = input("Enter Booking ID to cancel (or 'b' to go back): ").strip()
+
+    if booking_id.lower() == 'b':
+        return
+
     updated = []
     found = False
 
-    if booking_id.lower() == 'b':
-        return None
-    
     for booking in bookings:
         if booking[0] == booking_id and booking[1] == username:
             found = True
@@ -185,7 +167,7 @@ def cancel_booking(username):
                 'status'
             ])
             writer.writerows(updated)
+
         print('Booking cancelled successfully.')
     else:
         print('Booking not found or not yours.')
-        

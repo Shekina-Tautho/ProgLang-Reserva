@@ -23,21 +23,35 @@ def customer_menu(username):
         print('\n=== CUSTOMER MENU ===')
         print('1. Browse Hotels')
         print('2. Search Lodgings')
-        print('3. View My Bookings')
-        print('4. Cancel Booking')
-        print('5. Logout')
+        print('3. Make Reservation')
+        print('4. View My Bookings')
+        print('5. Cancel Booking')
+        print('6. Logout')
+
         choice = input('Enter choice: ').strip()
 
         if choice == '1':
-            make_reservation(username)
+            result = view_lodgings()
+
+            if result:
+                hotel, room = result
+                make_reservation(username, hotel, room)
+
         elif choice == '2':
             search_lodgings()
+
         elif choice == '3':
-            view_my_bookings(username)
+            make_reservation(username)
+
         elif choice == '4':
-            cancel_booking(username)
+            view_my_bookings(username)
+
         elif choice == '5':
+            cancel_booking(username)
+
+        elif choice == '6':
             break
+
         else:
             print('Invalid choice.')
 
@@ -48,6 +62,7 @@ def main():
         print('\n1. Log In')
         print('2. Register')
         print('3. Exit')
+
         choice = input('Enter choice: ').strip()
 
         if choice == '1':
@@ -58,8 +73,10 @@ def main():
                     admin_menu()
                 else:
                     customer_menu(username)
+
         elif choice == '2':
             register()
+
         elif choice == '3':
             break
 
