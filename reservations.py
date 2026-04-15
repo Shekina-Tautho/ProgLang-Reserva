@@ -22,13 +22,19 @@ def create_bookings_file():
 
 
 def load_bookings():
-    if not path.exists():
-        return []
+    try:
+        if not path.exists():
+            return []
 
-    with open(filepath, 'r') as file:
-        reader = csv.reader(file)
-        next(reader)
-        return [row for row in reader]
+        with open(filepath, 'r') as file:
+            reader = csv.reader(file)
+            next(reader, None)
+            return [row for row in reader]
+
+    except FileNotFoundError:
+        return []
+    except Exception:
+        return []
 
 
 def generate_booking_id(bookings):
@@ -66,7 +72,6 @@ def make_reservation(username, hotel=None, room=None):
 
     header("📌 New Reservation")
 
-    # STEP 1: SELECT HOTEL & ROOM
     if not hotel:
         hotel = browse_hotels()
         if not hotel:
@@ -79,15 +84,16 @@ def make_reservation(username, hotel=None, room=None):
 
     success(f"Selected {hotel[1]} - {room[2]}")
 
-    # STEP 2: INPUT GUESTS
+    # STEP 2: GUESTS
     while True:
         guests = input_prompt("Enter number of guests")
-        if guests.isdigit() and int(guests) <= int(room[4]):
-            guests = int(guests)
-            break
+        if guests.isdigit():
+            g = int(guests)
+            if 1 <= g <= int(room[4]):
+                break
         error("Invalid guest count. Must not exceed room capacity.")
 
-    # STEP 3: INPUT DATES
+    # STEP 3: DATES
     while True:
         check_in = input_prompt("Check-in date (YYYY-MM-DD)")
         check_out = input_prompt("Check-out date (YYYY-MM-DD)")
@@ -98,12 +104,12 @@ def make_reservation(username, hotel=None, room=None):
 
             if in_date.date() >= datetime.today().date() and out_date > in_date:
                 break
-        except:
-            pass
+        except ValueError:
+            error("Invalid format. Use YYYY-MM-DD.")
+            continue
 
-        error("Invalid dates. Ensure correct format and valid range.")
+        error("Invalid dates.")
 
-    # STEP 4: COMPUTE PRICE
     lodging_name = f"{hotel[1]} - {room[2]}"
     price_per_night = int(room[3])
     nights = (out_date - in_date).days
@@ -120,101 +126,126 @@ def make_reservation(username, hotel=None, room=None):
         ]
     )
 
-    # STEP 5: CONFIRM
     confirm = input_prompt("Confirm reservation? (y/n)").lower()
 
     if confirm != 'y':
         error("Reservation cancelled.")
         return
 
-    # STEP 6: CHECK AVAILABILITY
     if not is_room_available(lodging_name, check_in, check_out):
         error("Room is already booked for selected dates.")
         return
 
-    # STEP 7: SAVE
+    # ✅ FIX: PROPER SAVE
     bookings = load_bookings()
     booking_id = generate_booking_id(bookings)
 
-    with open(filepath, 'a', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow([
-            booking_id,
-            username,
-            hotel[0],
-            lodging_name,
-            guests,
-            check_in,
-            check_out,
-            "",
-            "Pending Payment"
-        ])
+    new_booking = [
+        booking_id,
+        username,
+        hotel[0],
+        lodging_name,
+        g,
+        check_in,
+        check_out,
+        "",
+        "Pending Payment"
+    ]
 
-    success("Reservation submitted successfully!")
+    try:
+        with open(filepath, 'a', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(new_booking)
+
+        success("Reservation submitted successfully!")
+
+    except Exception as e:
+        error(f"Failed to save reservation: {e}")
 
 
 # =========================
 # PAYMENT
 # =========================
 def pay_for_booking(username):
-    bookings = load_bookings()
+    try:
+        bookings = load_bookings()
 
-    if not bookings:
-        error("No bookings found.")
-        return
+        if not bookings:
+            error("No bookings found.")
+            return
 
-    header("💳 Payment")
+        header("💳 Payment")
 
-    booking_id = input_prompt("Enter Booking ID to pay (or 'b' to go back)")
+        booking_id = input_prompt("Enter Booking ID to pay (or 'b' to go back)")
 
-    if booking_id.lower() == 'b':
-        return
+        if not booking_id.strip():
+            error("Booking ID cannot be empty.")
+            return
 
-    updated = []
-    found = False
+        if booking_id.lower() == 'b':
+            return
 
-    for booking in bookings:
-        if booking[0] == booking_id and booking[1] == username:
-            found = True
+        updated = []
+        found = False
 
-            if booking[8] != "Pending Payment":
-                error("This booking is not awaiting payment.")
+        for booking in bookings:
+
+            # SAFE CHECK: prevent crash if row is corrupted
+            if len(booking) < 9:
                 updated.append(booking)
                 continue
 
-            card(
-                f"Booking #{booking[0]}",
-                [
-                    f"🏨 {booking[3]}",
-                    f"📅 {booking[5]} → {booking[6]}",
-                    f"📌 Status: {booking[8]}"
-                ]
-            )
+            if booking[0] == booking_id and booking[1] == username:
+                found = True
 
-            payment_ref = input_prompt("Enter payment reference")
+                if booking[8] != "Pending Payment":
+                    error("This booking is not awaiting payment.")
+                    updated.append(booking)
+                    continue
 
-            while payment_ref.strip() == "":
-                error("Payment reference cannot be empty.")
+                card(
+                    f"Booking #{booking[0]}",
+                    [
+                        f"🏨 {booking[3]}",
+                        f"📅 {booking[5]} → {booking[6]}",
+                        f"📌 Status: {booking[8]}"
+                    ]
+                )
+
                 payment_ref = input_prompt("Enter payment reference")
 
-            booking[7] = payment_ref
-            booking[8] = "Paid"
+                while payment_ref.strip() == "":
+                    error("Payment reference cannot be empty.")
+                    payment_ref = input_prompt("Enter payment reference")
 
-            success("Payment successful!")
+                booking[7] = payment_ref
+                booking[8] = "Paid"
 
-        updated.append(booking)
+                success("Payment successful!")
 
-    if not found:
-        error("Booking not found or not yours.")
-        return
+            updated.append(booking)
 
-    with open(filepath, 'w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow([
-            "booking_id", "username", "lodging_id", "lodging_name",
-            "guests", "check_in", "check_out", "payment_ref", "status"
-        ])
-        writer.writerows(updated)
+        if not found:
+            error("Booking not found or not yours.")
+            return
+
+        # SAFE FILE WRITE
+        try:
+            with open(filepath, 'w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow([
+                    "booking_id", "username", "lodging_id", "lodging_name",
+                    "guests", "check_in", "check_out", "payment_ref", "status"
+                ])
+                writer.writerows(updated)
+
+        except PermissionError:
+            error("File is currently in use. Try again.")
+        except Exception:
+            error("Unexpected error while saving payment.")
+
+    except Exception:
+        error("Something went wrong during payment processing.")
 
 
 # =========================
