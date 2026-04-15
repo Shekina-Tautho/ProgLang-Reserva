@@ -90,7 +90,6 @@ def search_lodgings():
             f"🏨 {lodge[1]}",
             [
                 f"🆔 ID: {lodge[0]}",
-                f"💰 ₱{lodge[2]} / night",
                 f"🌟 {features}"
             ]
         )
@@ -118,7 +117,6 @@ def browse_hotels():
                 f"🏨 {lodge[1]}",
                 [
                     f"🆔 ID: {lodge[0]}",
-                    f"💰 ₱{lodge[2]} / night",
                     f"🌟 {features}"
                 ]
             )
