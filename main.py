@@ -103,7 +103,7 @@ def main():
             register()
 
         elif choice == '3':
-            print("\nThank you for using LodgeBook. Goodbye!\n")
+            print("\nThank you for using Reserva!\n")
             break
 
         else:
