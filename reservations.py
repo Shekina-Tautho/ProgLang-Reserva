@@ -2,11 +2,15 @@ import csv
 from pathlib import Path
 from datetime import datetime
 from lodgings import browse_hotels, select_room_only
+from ui import header, card, input_prompt, error, success
 
 filepath = 'files/bookings.csv'
 path = Path(filepath)
 
 
+# =========================
+# INIT FILE
+# =========================
 def create_bookings_file():
     Path('files').mkdir(exist_ok=True)
     with open(filepath, 'w', newline='') as file:
@@ -18,6 +22,9 @@ def create_bookings_file():
 
 
 def load_bookings():
+    if not path.exists():
+        return []
+
     with open(filepath, 'r') as file:
         reader = csv.reader(file)
         next(reader)
@@ -28,6 +35,9 @@ def generate_booking_id(bookings):
     return 1 if not bookings else int(bookings[-1][0]) + 1
 
 
+# =========================
+# AVAILABILITY CHECK
+# =========================
 def is_room_available(lodging_name, check_in, check_out):
     bookings = load_bookings()
 
@@ -35,7 +45,6 @@ def is_room_available(lodging_name, check_in, check_out):
     new_out = datetime.strptime(check_out, '%Y-%m-%d')
 
     for booking in bookings:
-        # ONLY approved bookings block rooms
         if booking[3] != lodging_name or booking[8] != 'Approved':
             continue
 
@@ -48,11 +57,16 @@ def is_room_available(lodging_name, check_in, check_out):
     return True
 
 
+# =========================
+# MAKE RESERVATION
+# =========================
 def make_reservation(username, hotel=None, room=None):
     if not path.exists():
         create_bookings_file()
 
-    # STEP 1: SELECT HOTEL & ROOM (if not passed)
+    header("📌 New Reservation")
+
+    # STEP 1: SELECT HOTEL & ROOM
     if not hotel:
         hotel = browse_hotels()
         if not hotel:
@@ -63,18 +77,20 @@ def make_reservation(username, hotel=None, room=None):
         if not room:
             return
 
+    success(f"Selected {hotel[1]} - {room[2]}")
+
     # STEP 2: INPUT GUESTS
     while True:
-        guests = input('Number of guests: ').strip()
+        guests = input_prompt("Enter number of guests")
         if guests.isdigit() and int(guests) <= int(room[4]):
             guests = int(guests)
             break
-        print('Invalid guests count.')
+        error("Invalid guest count. Must not exceed room capacity.")
 
     # STEP 3: INPUT DATES
     while True:
-        check_in = input('Enter check-in date (YYYY-MM-DD): ').strip()
-        check_out = input('Enter check-out date (YYYY-MM-DD): ').strip()
+        check_in = input_prompt("Check-in date (YYYY-MM-DD)")
+        check_out = input_prompt("Check-out date (YYYY-MM-DD)")
 
         try:
             in_date = datetime.strptime(check_in, '%Y-%m-%d')
@@ -85,37 +101,41 @@ def make_reservation(username, hotel=None, room=None):
         except:
             pass
 
-        print('Invalid dates.')
+        error("Invalid dates. Ensure correct format and valid range.")
 
     # STEP 4: COMPUTE PRICE
-    lodging_name = hotel[1] + ' - ' + room[2]
+    lodging_name = f"{hotel[1]} - {room[2]}"
     price_per_night = int(room[3])
     nights = (out_date - in_date).days
     total = price_per_night * nights
 
-    print("\n=== BOOKING SUMMARY ===")
-    print(f"Lodging     : {lodging_name}")
-    print(f"Price/night : ₱{price_per_night}")
-    print(f"Nights      : {nights}")
-    print(f"Total       : ₱{total}")
+    header("🧾 Booking Summary")
 
-    # STEP 5: CONFIRMATION
-    confirm = input("\nConfirm reservation? (y/n): ").strip().lower()
+    card(
+        lodging_name,
+        [
+            f"💰 ₱{price_per_night} / night",
+            f"🌙 Nights: {nights}",
+            f"🧾 Total: ₱{total}"
+        ]
+    )
+
+    # STEP 5: CONFIRM
+    confirm = input_prompt("Confirm reservation? (y/n)").lower()
 
     if confirm != 'y':
-        print("Reservation cancelled.")
+        error("Reservation cancelled.")
         return
 
     # STEP 6: CHECK AVAILABILITY
     if not is_room_available(lodging_name, check_in, check_out):
-        print('❌ Room is already booked.')
+        error("Room is already booked for selected dates.")
         return
 
-    # STEP 7: GENERATE ID
+    # STEP 7: SAVE
     bookings = load_bookings()
     booking_id = generate_booking_id(bookings)
 
-    # STEP 8: WRITE TO FILE
     with open(filepath, 'a', newline='') as file:
         writer = csv.writer(file)
         writer.writerow([
@@ -126,21 +146,26 @@ def make_reservation(username, hotel=None, room=None):
             guests,
             check_in,
             check_out,
-            "",  # payment_ref later
+            "",
             "Pending Payment"
         ])
 
-    print("\nReservation submitted successfully!")
+    success("Reservation submitted successfully!")
 
 
+# =========================
+# PAYMENT
+# =========================
 def pay_for_booking(username):
-    if not path.exists():
-        print("No bookings found.")
-        return
-
     bookings = load_bookings()
 
-    booking_id = input("Enter Booking ID to pay (or 'b' to go back): ").strip()
+    if not bookings:
+        error("No bookings found.")
+        return
+
+    header("💳 Payment")
+
+    booking_id = input_prompt("Enter Booking ID to pay (or 'b' to go back)")
 
     if booking_id.lower() == 'b':
         return
@@ -153,92 +178,100 @@ def pay_for_booking(username):
             found = True
 
             if booking[8] != "Pending Payment":
-                print("❌ This booking is not awaiting payment.")
+                error("This booking is not awaiting payment.")
                 updated.append(booking)
                 continue
 
-            print("\n=== BOOKING DETAILS ===")
-            print(f"Lodging   : {booking[3]}")
-            print(f"Check-in  : {booking[5]}")
-            print(f"Check-out : {booking[6]}")
-            print(f"Status    : {booking[8]}")
+            card(
+                f"Booking #{booking[0]}",
+                [
+                    f"🏨 {booking[3]}",
+                    f"📅 {booking[5]} → {booking[6]}",
+                    f"📌 Status: {booking[8]}"
+                ]
+            )
 
-            payment_ref = input("\nEnter payment reference: ").strip()
+            payment_ref = input_prompt("Enter payment reference")
 
-            while payment_ref == "":
-                print("❌ Payment reference cannot be empty.")
-                payment_ref = input("Enter payment reference: ").strip()
+            while payment_ref.strip() == "":
+                error("Payment reference cannot be empty.")
+                payment_ref = input_prompt("Enter payment reference")
 
             booking[7] = payment_ref
             booking[8] = "Paid"
 
-            print("✅ Payment successful!")
+            success("Payment successful!")
 
         updated.append(booking)
 
     if not found:
-        print("❌ Booking ID not found or not yours.")
+        error("Booking not found or not yours.")
         return
 
     with open(filepath, 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow([
-            "booking_id",
-            "username",
-            "lodging_id",
-            "lodging_name",
-            "guests",
-            "check_in",
-            "check_out",
-            "payment_ref",
-            "status"
+            "booking_id", "username", "lodging_id", "lodging_name",
+            "guests", "check_in", "check_out", "payment_ref", "status"
         ])
         writer.writerows(updated)
-    
 
+
+# =========================
+# VIEW BOOKINGS
+# =========================
 def view_my_bookings(username):
-    if not path.exists():
-        print("No bookings found.")
+    bookings = load_bookings()
+
+    if not bookings:
+        error("No bookings found.")
         return
 
-    bookings = load_bookings()
-    found = False
+    header("📊 My Bookings")
 
-    print("\n=== MY BOOKINGS ===\n")
-    
     status_icons = {
         "Pending Payment": "🟡 Pending Payment",
         "Paid": "💳 Paid",
-        "Approved": "✅ Approved",
-        "Rejected": "❌ Rejected"
+        "Approved": "🟢 Approved",
+        "Rejected": "🔴 Rejected"
     }
+
+    found = False
 
     for booking in bookings:
         if booking[1] == username:
             found = True
 
-            print("=" * 50)
-            print(f" Booking ID : {booking[0]}")
-            print(f" Lodging   : {booking[3]}")
-            print(f" Guests    : {booking[4]}")
-            print(f" Check-in  : {booking[5]}")
-            print(f" Check-out : {booking[6]}")
-            print(f" Payment   : {booking[7]}")
-            print(f" Status    : {status_icons.get(booking[8], booking[8])}")
-            print("=" * 50)
+            card(
+                f"Booking #{booking[0]}",
+                [
+                    f"🏨 {booking[3]}",
+                    f"👥 Guests: {booking[4]}",
+                    f"📅 {booking[5]} → {booking[6]}",
+                    f"💳 Payment: {booking[7] or 'N/A'}",
+                    f"📌 Status: {status_icons.get(booking[8], booking[8])}"
+                ]
+            )
             print()
 
     if not found:
-        print("You have no bookings.")
-        
-        
-def cancel_booking(username):
-    if not path.exists():
-        return
+        error("You have no bookings yet.")
+        print("👉 Try making a reservation first.\n")
 
+
+# =========================
+# CANCEL BOOKING
+# =========================
+def cancel_booking(username):
     bookings = load_bookings()
 
-    booking_id = input("Enter Booking ID to cancel (or 'b' to go back): ").strip()
+    if not bookings:
+        error("No bookings found.")
+        return
+
+    header("❌ Cancel Booking")
+
+    booking_id = input_prompt("Enter Booking ID (or 'b' to go back)")
 
     if booking_id.lower() == 'b':
         return
@@ -251,40 +284,41 @@ def cancel_booking(username):
         if booking[0] == booking_id and booking[1] == username:
             found = True
 
-            # ❌ Block cancellation if already processed
+            card(
+                f"Booking #{booking[0]}",
+                [
+                    f"🏨 {booking[3]}",
+                    f"📅 {booking[5]} → {booking[6]}",
+                    f"📌 Status: {booking[8]}"
+                ]
+            )
+
             if booking[8] in ["Approved", "Rejected"]:
-                print("❌ Cannot cancel processed booking.")
+                error("Cannot cancel processed booking.")
                 updated.append(booking)
                 continue
 
-            # ✅ Allow cancellation (skip adding to updated list)
-            cancelled = True
-            continue
+            confirm = input_prompt("Confirm cancellation? (y/n)").lower()
+
+            if confirm == 'y':
+                cancelled = True
+                success("Booking cancelled.")
+                continue
+            else:
+                updated.append(booking)
+                continue
 
         updated.append(booking)
 
-    # ❌ Booking not found
     if not found:
-        print('❌ Booking not found or not yours.')
+        error("Booking not found or not yours.")
         return
 
-    # ✅ Only write + success if actually cancelled
     if cancelled:
         with open(filepath, 'w', newline='') as file:
             writer = csv.writer(file)
             writer.writerow([
-                'booking_id',
-                'username',
-                'lodging_id',
-                'lodging_name',
-                'guests',
-                'check_in',
-                'check_out',
-                'payment_ref',
-                'status'
+                'booking_id', 'username', 'lodging_id', 'lodging_name',
+                'guests', 'check_in', 'check_out', 'payment_ref', 'status'
             ])
             writer.writerows(updated)
-
-        print('✅ Booking cancelled successfully.')
-    else:
-        print('❌ Cancellation failed.')
