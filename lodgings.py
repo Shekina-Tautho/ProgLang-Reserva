@@ -29,10 +29,13 @@ def load_lodgings():
 
 
 def load_rooms():
-    with open(room_file, 'r') as file:
-        reader = csv.reader(file)
-        next(reader)
-        return [row for row in reader]
+    try:
+        with open(room_file, 'r') as file:
+            reader = csv.reader(file)
+            next(reader, None)
+            return [row for row in reader]
+    except FileNotFoundError:
+        return []
 
 
 # =========================
@@ -107,6 +110,10 @@ def browse_hotels():
 
     lodgings = load_lodgings()
 
+    if not lodgings:
+        error("No hotels available.")
+        return None
+
     while True:
         header("🏨 Available Hotels")
 
@@ -128,7 +135,7 @@ def browse_hotels():
             return None
 
         for lodge in lodgings:
-            if lodge[0] == hotel_id:
+            if lodge[0] == hotel_id.strip():
                 success(f"Selected {lodge[1]}")
                 print("Loading available rooms...\n")
                 return lodge
@@ -186,6 +193,10 @@ def view_lodgings():
         create_lodgings_file()
 
     lodgings = load_lodgings()
+
+    if not lodgings:
+        error("No hotels available.")
+        return None
 
     while True:
         display_lodgings(lodgings)
