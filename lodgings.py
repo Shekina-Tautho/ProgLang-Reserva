@@ -7,6 +7,9 @@ room_file = 'files/rooms.csv'
 path = Path(filepath)
 
 
+# =========================
+# INIT DATA
+# =========================
 def create_lodgings_file():
     Path('files').mkdir(exist_ok=True)
     with open(filepath, 'w', newline='') as file:
@@ -32,31 +35,37 @@ def load_rooms():
         return [row for row in reader]
 
 
+# =========================
+# DISPLAY HOTELS (CLICKABLE LIST)
+# =========================
 def display_lodgings(lodgings):
     from ui import list_item
 
-    print("\n=== HOTELS ===\n")
+    header("🏨 Hotels")
 
     for lodge in lodgings:
-        features = lodge[4].split("|")
-        feature_text = " | ".join(features)
+        features = " | ".join(lodge[4].split("|"))
 
         list_item(
-            lodge[0],  # ID
-            lodge[1],  # NAME
-            f"{feature_text}"
+            lodge[0],
+            lodge[1],
+            f"🌟 {features}"
         )
 
+    print()
+    print("Type a Hotel ID to continue, or 'b' to go back.\n")
 
+
+# =========================
+# SEARCH HOTELS
+# =========================
 def search_lodgings():
-    from ui import header, error, input_prompt, card
-
     if not path.exists():
         create_lodgings_file()
 
     lodgings = load_lodgings()
 
-    header("Search Hotels")
+    header("🔍 Search Hotels")
 
     keyword = input_prompt("Enter keyword (or 'b' to go back)").lower()
 
@@ -69,47 +78,53 @@ def search_lodgings():
     ]
 
     if not results:
-        error("No results found.")
+        error("No results found. Try another keyword.")
         return
 
+    header(f"🔍 Results for: '{keyword}'")
+
     for lodge in results:
-        features = lodge[4].split("|")
+        features = " | ".join(lodge[4].split("|"))
 
         card(
-            lodge[1],
+            f"🏨 {lodge[1]}",
             [
-                f"Hotel ID: {lodge[0]}",
-                f"₱{lodge[2]} / night",
-                f"Capacity: {lodge[3]} guests",
-                f"Features: {' | '.join(features)}"
+                f"🆔 ID: {lodge[0]}",
+                f"💰 ₱{lodge[2]} / night",
+                f"🌟 {features}"
             ]
         )
+        print()
+
+    print("Enter a Hotel ID to view rooms, or 'b' to go back.\n")
 
 
+# =========================
+# BROWSE HOTELS (CARD STYLE)
+# =========================
 def browse_hotels():
-    from ui import header, card, input_prompt, error, success
-
     if not path.exists():
         create_lodgings_file()
 
     lodgings = load_lodgings()
 
     while True:
-        header("Available Hotels")
+        header("🏨 Available Hotels")
 
         for lodge in lodgings:
-            features = lodge[4].split("|")
+            features = " | ".join(lodge[4].split("|"))
 
             card(
-                lodge[1],
+                f"🏨 {lodge[1]}",
                 [
-                    f"Hotel ID: {lodge[0]}",
-                    f"₱{lodge[2]} / night",
-                    f"Features: {' | '.join(features)}"
+                    f"🆔 ID: {lodge[0]}",
+                    f"💰 ₱{lodge[2]} / night",
+                    f"🌟 {features}"
                 ]
             )
+            print()
 
-        hotel_id = input_prompt("Enter Hotel ID (or 'b' to go back)")
+        hotel_id = input_prompt("Enter Hotel ID to view rooms (or 'b' to go back)")
 
         if hotel_id.lower() == 'b':
             return None
@@ -117,42 +132,20 @@ def browse_hotels():
         for lodge in lodgings:
             if lodge[0] == hotel_id:
                 success(f"Selected {lodge[1]}")
+                print("Loading available rooms...\n")
                 return lodge
 
-        error("Invalid Hotel ID")
+        error("Invalid Hotel ID. Please try again.")
 
 
-def show_rooms(hotel_id):
-    rooms = load_rooms()
-
-    while True:
-        print('\n=== AVAILABLE ROOMS ===')
-
-        choices = []
-        for room in rooms:
-            if room[1] == hotel_id:
-                choices.append(room)
-                print(f"{room[0]}. {room[2]} | ₱{room[3]} | Capacity: {room[4]}")
-
-        room_id = input("Select Room ID (or 'b' to go back): ").strip()
-
-        if room_id.lower() == 'b':
-            return None
-
-        for room in choices:
-            if room[0] == room_id:
-                return room
-
-        print('Invalid Room ID.')
-
-
+# =========================
+# ROOMS DISPLAY
+# =========================
 def select_room_only(hotel_id):
-    from ui import header, card, input_prompt, error
-
     rooms = load_rooms()
 
     while True:
-        header("Available Rooms")
+        header("📍 Hotels > Rooms")
 
         available_rooms = []
 
@@ -161,30 +154,35 @@ def select_room_only(hotel_id):
                 available_rooms.append(room)
 
                 card(
-                    room[2],  # room type (optional title)
+                    f"🛏 {room[2]}",
                     [
-                        f"Room ID: {room[0]}",
-                        f"₱{room[3]} / night",
-                        f"Capacity: {room[4]} guests"
+                        f"🆔 Room ID : {room[0]}",
+                        f"💰 ₱{room[3]} / night",
+                        f"👥 Capacity: {room[4]} guests"
                     ]
                 )
+                print()
 
         if not available_rooms:
-            error("No rooms available.")
+            error("No rooms available for this hotel. Try another one.")
             return None
 
-        choice = input_prompt("Select Room ID (or 'b' to go back)")
+        choice = input_prompt("Enter Room ID to continue (or 'b' to go back)")
 
         if choice.lower() == "b":
             return None
 
         for room in available_rooms:
             if room[0] == choice:
+                success(f"Selected {room[2]}")
                 return room
 
-        error("Invalid Room ID")
+        error("Invalid Room ID. Please try again.")
 
 
+# =========================
+# MAIN FLOW
+# =========================
 def view_lodgings():
     if not path.exists():
         create_lodgings_file()
@@ -194,9 +192,9 @@ def view_lodgings():
     while True:
         display_lodgings(lodgings)
 
-        hotel_id = input("Select Hotel ID (or 'b' to go back): ").strip()
+        hotel_id = input_prompt("Enter Hotel ID")
 
-        if hotel_id == "b":
+        if hotel_id.lower() == "b":
             return None
 
         selected = None
@@ -206,8 +204,11 @@ def view_lodgings():
                 break
 
         if not selected:
-            print("Invalid Hotel ID.")
+            error("Invalid Hotel ID. Please try again.")
             continue
+
+        success(f"Selected {selected[1]}")
+        print("Loading available rooms...\n")
 
         room = select_room_only(hotel_id)
 

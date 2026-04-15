@@ -83,7 +83,11 @@ def card(title, lines, width=50):
 # LIST ITEM FORMATTER
 # =========================
 
-def list_item(index, title, subtitle=""):
-    print(f"[{index}] {title.upper()}")
+def list_item(id, title, subtitle="", extra=""):
+    print(f"[{id}] {title}")
+
     if subtitle:
         print(f"    {subtitle}")
+
+    if extra:
+        print(f"    {extra}")

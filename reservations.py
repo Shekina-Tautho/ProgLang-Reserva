@@ -1,7 +1,7 @@
 import csv
 from pathlib import Path
 from datetime import datetime
-from lodgings import browse_hotels, show_rooms
+from lodgings import browse_hotels, select_room_only
 
 filepath = 'files/bookings.csv'
 path = Path(filepath)
@@ -59,7 +59,7 @@ def make_reservation(username, hotel=None, room=None):
             return
 
     if not room:
-        room = show_rooms(hotel[0])
+        room = select_room_only(hotel[0])
         if not room:
             return
 
