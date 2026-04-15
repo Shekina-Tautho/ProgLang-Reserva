@@ -1,24 +1,33 @@
 import csv
 from pathlib import Path
+from ui import header, error, success
 
 filepath = 'files/bookings.csv'
 path = Path(filepath)
 
 
 # =========================
-# LOAD BOOKINGS
+# LOAD BOOKINGS (SAFE)
 # =========================
 def load_bookings():
     if not path.exists():
         return []
 
     bookings = []
-    with open(filepath, 'r') as file:
-        reader = csv.reader(file)
-        next(reader, None)
 
-        for row in reader:
-            bookings.append(row)
+    try:
+        with open(filepath, 'r') as file:
+            reader = csv.reader(file)
+            next(reader, None)
+
+            for row in reader:
+                # SAFE: skip corrupted rows
+                if len(row) < 9:
+                    continue
+                bookings.append(row)
+
+    except Exception:
+        return []
 
     return bookings
 
@@ -38,63 +47,61 @@ status_icons = {
 # VIEW ALL BOOKINGS
 # =========================
 def view_all_bookings():
-    if not path.exists():
-        print("No bookings found.")
-        return
-
     bookings = load_bookings()
 
-    print("\n" + "=" * 110)
-    print(" " * 40 + "📊 ADMIN BOOKINGS DASHBOARD")
-    print("=" * 110)
+    if not bookings:
+        error("No bookings found.")
+        return
+
+    header("📊 ADMIN BOOKINGS DASHBOARD")
 
     print(f"{'ID':<5} | {'USER':<12} | {'LODGING':<25} | {'STATUS':<18} | {'PAYMENT':<15}")
-    print("-" * 110)
+    print("-" * 90)
 
     for b in bookings:
         status = status_icons.get(b[8], b[8])
-
         print(f"{b[0]:<5} | {b[1]:<12} | {b[3]:<25} | {status:<18} | {b[7]:<15}")
 
-    print("=" * 110)
+    print("-" * 90)
 
 
 # =========================
-# FILTER VIEW (ALL STATUSES)
+# FILTER BY STATUS
 # =========================
 def view_bookings_by_status(status_filter):
     bookings = load_bookings()
 
-    print("\n" + "=" * 110)
-    print(f" 📊 BOOKINGS - {status_filter.upper()}")
-    print("=" * 110)
-
-    print(f"{'ID':<5} | {'USER':<12} | {'LODGING':<25} | {'STATUS':<18} | {'PAYMENT':<15}")
-    print("-" * 110)
+    header(f"📊 BOOKINGS - {status_filter}")
 
     found = False
 
+    print(f"{'ID':<5} | {'USER':<12} | {'LODGING':<25} | {'STATUS':<18} | {'PAYMENT':<15}")
+    print("-" * 90)
+
     for b in bookings:
+        if len(b) < 9:
+            continue
+
         if b[8] == status_filter:
             found = True
             status = status_icons.get(b[8], b[8])
             print(f"{b[0]:<5} | {b[1]:<12} | {b[3]:<25} | {status:<18} | {b[7]:<15}")
 
     if not found:
-        print("No records found.")
+        error("No records found.")
 
-    print("=" * 110)
+    print("-" * 90)
 
 
 # =========================
 # UPDATE BOOKING STATUS
 # =========================
 def update_booking_status():
-    if not path.exists():
-        print("No bookings found.")
-        return
-
     bookings = load_bookings()
+
+    if not bookings:
+        error("No bookings found.")
+        return
 
     while True:
         booking_id = input("Enter Booking ID (or 'b' to go back): ").strip()
@@ -102,18 +109,25 @@ def update_booking_status():
         if booking_id.lower() == 'b':
             return
 
+        if not booking_id.isdigit():
+            error("Booking ID must be numeric.")
+            continue
+
         target = None
+
         for b in bookings:
+            if len(b) < 9:
+                continue
             if b[0] == booking_id:
                 target = b
                 break
 
         if not target:
-            print("❌ Invalid Booking ID. Try again.")
+            error("Invalid Booking ID.")
             continue
 
         if target[8] != "Paid":
-            print("❌ Only PAID bookings can be approved or rejected.")
+            error("Only PAID bookings can be approved or rejected.")
             return
 
         print("\nBooking found:")
@@ -130,35 +144,34 @@ def update_booking_status():
         elif choice == "2":
             new_status = "Rejected"
         else:
-            print("❌ Invalid choice.")
+            error("Invalid choice.")
             continue
 
+        # update safely
         for b in bookings:
             if b[0] == booking_id:
                 b[8] = new_status
                 break
 
-        with open(filepath, 'w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow([
-                "booking_id",
-                "username",
-                "lodging_id",
-                "lodging_name",
-                "guests",
-                "check_in",
-                "check_out",
-                "payment_ref",
-                "status"
-            ])
-            writer.writerows(bookings)
+        try:
+            with open(filepath, 'w', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow([
+                    "booking_id", "username", "lodging_id", "lodging_name",
+                    "guests", "check_in", "check_out", "payment_ref", "status"
+                ])
+                writer.writerows(bookings)
 
-        print(f"✅ Booking {new_status} successfully.")
+            success(f"Booking {new_status} successfully.")
+
+        except Exception:
+            error("Failed to update booking file.")
+
         return
 
 
 # =========================
-# ADMIN MENU (FINAL UPGRADE)
+# ADMIN MENU
 # =========================
 def admin_menu():
     while True:
@@ -166,10 +179,10 @@ def admin_menu():
         print("         🛠 ADMIN DASHBOARD")
         print("=" * 55)
         print("1. View All Bookings")
-        print("2. View Pending Payments")
-        print("3. View Paid Bookings")
-        print("4. View Approved Bookings")   # ✅ ADDED
-        print("5. View Rejected Bookings")   # ✅ ADDED
+        print("2. Pending Payments")
+        print("3. Paid Bookings")
+        print("4. Approved Bookings")
+        print("5. Rejected Bookings")
         print("6. Approve / Reject Booking")
         print("7. Logout")
         print("=" * 55)
@@ -178,25 +191,18 @@ def admin_menu():
 
         if choice == "1":
             view_all_bookings()
-
         elif choice == "2":
             view_bookings_by_status("Pending Payment")
-
         elif choice == "3":
             view_bookings_by_status("Paid")
-
         elif choice == "4":
-            view_bookings_by_status("Approved")   # ✅ NEW
-
+            view_bookings_by_status("Approved")
         elif choice == "5":
-            view_bookings_by_status("Rejected")   # ✅ NEW
-
+            view_bookings_by_status("Rejected")
         elif choice == "6":
             update_booking_status()
-
         elif choice == "7":
             print("Logging out...")
             break
-
         else:
-            print("Invalid choice.")
+            error("Invalid choice.")
