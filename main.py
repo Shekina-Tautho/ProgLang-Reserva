@@ -15,25 +15,46 @@ def show_logo():
 ██╔══██╗██╔══╝  ╚════██║██╔══╝  ██╔══██╗╚██╗ ██╔╝██╔══██║
 ██║  ██║███████╗███████║███████╗██║  ██║ ╚████╔╝ ██║  ██║
 ╚═╝  ╚═╝╚══════╝╚══════╝╚══════╝╚═╝  ╚═╝  ╚═══╝  ╚═╝  ╚═╝
-    """)
+""")
+
+    print("\n            🏨 LODGEBOOK SYSTEM")
+    print("--------------------------------------------------")
+
+
+def show_landing_menu():
+    print("\n[1] Log In")
+    print("[2] Register")
+    print("[3] Exit")
+    print("\n--------------------------------------------------")
 
 
 def customer_menu(username):
     while True:
-        print('\n=== CUSTOMER MENU ===')
-        print('1. Browse Hotels')
-        print('2. Search Lodgings')
-        print('3. Make Reservation')
-        print('4. View My Bookings')
-        print('5. Cancel Booking')
-        print('6. Pay for Booking')
-        print('7. Logout')
+        print("\n" + "=" * 50)
+        print(f"        👤 CUSTOMER DASHBOARD")
+        print("=" * 50)
+        print(f"Welcome, {username}")
+        print("-" * 50)
 
-        choice = input('Enter choice: ').strip()
+        print("\n--- BOOKINGS ---")
+        print("[1] Browse Hotels")
+        print("[2] Search Lodgings")
+        print("[3] Make Reservation")
+
+        print("\n--- MANAGE ---")
+        print("[4] View My Bookings")
+        print("[5] Cancel Booking")
+        print("[6] Pay for Booking")
+
+        print("\n--- ACCOUNT ---")
+        print("[7] Logout")
+
+        print("\n" + "-" * 50)
+
+        choice = input("Enter choice (1-7): ").strip()
 
         if choice == '1':
             result = view_lodgings()
-
             if result:
                 hotel, room = result
                 make_reservation(username, hotel, room)
@@ -52,26 +73,27 @@ def customer_menu(username):
 
         elif choice == '6':
             pay_for_booking(username)
-            
+
         elif choice == '7':
+            print("Logging out...\n")
             break
+
         else:
-            print('Invalid choice.')
+            print("❌ Invalid choice. Please select from the menu.")
 
 
 def main():
-    show_logo()
     while True:
-        print('\n1. Log In')
-        print('2. Register')
-        print('3. Exit')
+        show_logo()
+        show_landing_menu()
 
-        choice = input('Enter choice: ').strip()
+        choice = input("Enter choice (1-3): ").strip()
 
         if choice == '1':
             result = login()
             if result:
                 username, role = result
+
                 if role == 'admin':
                     admin_menu()
                 else:
@@ -81,7 +103,11 @@ def main():
             register()
 
         elif choice == '3':
+            print("\nThank you for using LodgeBook. Goodbye!\n")
             break
+
+        else:
+            print("❌ Invalid choice. Please select 1–3.")
 
 
 if __name__ == '__main__':
