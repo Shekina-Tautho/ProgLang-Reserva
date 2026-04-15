@@ -6,26 +6,42 @@ filepath = 'files/users.csv'
 path = Path(filepath)
 
 
+# =========================
+# CREATE CSV
+# =========================
 def create_csv():
-    Path("files").mkdir(exist_ok=True)  # ensure folder exists
+    Path("files").mkdir(exist_ok=True)
+
+    # Create only if it doesn't exist or is empty
+    if path.exists():
+        return
 
     with open(filepath, 'w', newline='') as file:
         writer = csv.writer(file)
         writer.writerow(['username', 'password', 'role'])
 
 
+# =========================
+# LOAD CSV (SAFE)
+# =========================
 def load_csv():
-    rows = []
-    with open(filepath, 'r') as csvfile:
-        csvreader = csv.reader(csvfile)
-        next(csvreader)  # skip header
+    try:
+        if not path.exists():
+            return []
 
-        for row in csvreader:
-            rows.append(row)
+        with open(filepath, 'r') as csvfile:
+            csvreader = csv.reader(csvfile)
+            next(csvreader, None)  # safe skip header
 
-    return rows
+            return [row for row in csvreader if len(row) >= 3]
+
+    except Exception:
+        return []
 
 
+# =========================
+# REGISTER
+# =========================
 def register():
     while True:
         print("\n=== REGISTER ===")
@@ -33,36 +49,47 @@ def register():
         username = input("Enter username: ").strip()
         password = input("Enter password: ").strip()
 
-        # ✅ Validation
-        if username == "" or password == "":
+        # Validation
+        if not username or not password:
             print("Fields cannot be empty.\n")
             continue
 
+        if len(username) < 3:
+            print("Username must be at least 3 characters.\n")
+            continue
+
+        if len(password) < 4:
+            print("Password must be at least 4 characters.\n")
+            continue
+
         try:
-            if path.exists():
-                rows = load_csv()
+            create_csv()
+            rows = load_csv()
 
-                for row in rows:
-                    if row[0] == username:
-                        print("Username already exists.\n")
-                        return
+            # check duplicates
+            for row in rows:
+                if row[0] == username:
+                    print("Username already exists.\n")
+                    return
 
-                # Save user
-                with open(filepath, 'a', newline='') as file:
-                    writer = csv.writer(file)
-                    writer.writerow([username, password, "user"])
+            # save user
+            with open(filepath, 'a', newline='') as file:
+                writer = csv.writer(file)
+                writer.writerow([username, password, "user"])
 
-                print("Account created successfully!\n")
-                return
+            print("Account created successfully!\n")
+            return
 
-            else:
-                create_csv()
-                print("System initialized. Please register again.\n")
+        except PermissionError:
+            print("File is currently open. Close it and try again.\n")
 
         except Exception as e:
-            print("Error:", e)
+            print("Unexpected error:", e)
 
 
+# =========================
+# LOGIN
+# =========================
 def login():
     while True:
         print("\n=== LOGIN ===")
@@ -70,24 +97,20 @@ def login():
         username = input("Enter username: ").strip()
         password = input("Enter password: ").strip()
 
-        if username == "" or password == "":
+        if not username or not password:
             print("Fields cannot be empty.\n")
             continue
 
         try:
-            if path.exists():
-                rows = load_csv()
+            create_csv()
+            rows = load_csv()
 
-                for row in rows:
-                    if row[0] == username and row[1] == password:
-                        print("Login successful!\n")
-                        return username, row[2]  # return role
+            for row in rows:
+                if row[0] == username and row[1] == password:
+                    print("Login successful!\n")
+                    return username, row[2]  # role
 
-                print("Invalid credentials.\n")
-
-            else:
-                create_csv()
-                print("No users found. Please register first.\n")
+            print("Invalid credentials.\n")
 
         except Exception as e:
             print("Error:", e)
